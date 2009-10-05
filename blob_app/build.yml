@@ -1,6 +1,6 @@
 env:
   version: 1.0
-  appname: RhoBlob
+  appname: RhodesImageSync
   vendor: rhomobile
   bbver: 4.6
   applog: C:/rholog.txt
