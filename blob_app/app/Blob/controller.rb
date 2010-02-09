@@ -12,12 +12,10 @@ class BlobController < Rho::RhoController
   end
   
 	def downloading_data
-		render :action => :downloading_data
   end
 
 	def images
 		@images = Blob.find(:all)
-    render :action => :images
 	end
 
  	def authenticate
