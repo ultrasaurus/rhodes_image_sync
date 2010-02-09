@@ -1,5 +1,5 @@
-start_path = '/app/Blob'
-options_path = '/app/Settings'
+start_path = '/app/Blob/authenticate'
+options_path = '/app/Blob/authenticate'
 rhobundle_zip_url = nil
 rhobundle_zip_pwd = nil
 

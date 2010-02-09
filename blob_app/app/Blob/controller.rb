@@ -8,22 +8,53 @@ class BlobController < Rho::RhoController
   include ApplicationHelper
     
   def index
-		authenticate
+    @images = Blob.find(:all)
   end
   
 	def downloading_data
   end
 
-	def images
-		@images = Blob.find(:all)
-	end
+  def take
+    Camera::take_picture(url_for :action => :camera_callback)
+    redirect :action => :index
+  end
+  
+  def choose
+    Camera::choose_picture(url_for :action => :camera_callback)
+    redirect :action => :index
+  end
+  
+  def delete
+     @image = Blob.find(@params['id'])
+     @image.destroy
+     redirect :action => :index
+   end
+
+  def camera_callback
+   if @params['status'] == 'ok'
+     #create image record in the DB
+     image = Blob.new({'image_uri'=>@params['image_uri']})
+     image.save
+     puts "new Image object: " + image.inspect
+     WebView.navigate "/app/Blob"
+   end  
+  end
+  
+  def sync
+    SyncEngine::dosync
+    redirect :action => :index
+  end
 
  	def authenticate
-    begin
-      SyncEngine::login("admin", "password", (url_for :action => :login_callback) )
-      render :action => :authenticating
-    rescue RhoError => e
-      puts e.message
+ 	  if SyncEngine::logged_in > 0
+      redirect :action => :index
+    else	  
+      begin
+        SyncEngine::login("admin", "password", url_for(:action => :login_callback) )
+        render :action => :authenticating
+      rescue RhoError => e
+        puts e.message
+      end
     end
   end
   
@@ -42,7 +73,7 @@ class BlobController < Rho::RhoController
     elsif status == "ok"
     	
       if SyncEngine::logged_in > 0
-        WebView.navigate "/app/Blob/images"
+        WebView.navigate "/app/Blob"
       else
         # rhosync has logged us out
       end
@@ -55,7 +86,7 @@ class BlobController < Rho::RhoController
     	# run sync if we were successful
       Blob.set_notification("/app/Blob/sync_notify", "doesnotmatter")
       WebView.navigate(url_for(:action => :downloading_data))
-      SyncEngine::dosync(false)
+      SyncEngine::dosync
     else
       if errCode == Rho::RhoError::ERR_CUSTOMSYNCSERVER
         @msg = @params['error_message']
@@ -71,6 +102,10 @@ class BlobController < Rho::RhoController
       
    		puts @msg
     end  
+  end
+  
+  def server_error
+    @msg = @params['msg']
   end
   
 end
