@@ -17,4 +17,9 @@ class Blob < SourceAdapter
 #    o.user_id = @source.current_user.id
 #		ov.blob="http://github.com/images/modules/header/logov3.png"
 	end
+	
+	def create(name_value_list)
+	  # just for debugging right now
+	  logger.debug  name_value_list.inspect.to_s
+	end
 end
