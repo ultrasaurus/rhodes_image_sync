@@ -1,10 +1,14 @@
 <h1>Rhodes ImageSync</h1>
 
+
 <% @images && @images.reverse_each do |x| %>
   <img src="<%=x.image_uri%>" width='300px'></img><a href="<%=url_for(:action => :delete, :id =>x.object)%>">Delete</a><br/>
 <% end %>
 
+<!-- padding needed so it wont get lost behind toolbar-->
+<div style="padding-bottom:40px">
 <%= link_to '[Choose Picture]', { :action => :choose }%>
 <%= link_to '[Take Picture]', { :action => :take }%>
 <br />
 <%= link_to '[Do Sync]', { :action => :sync }%>
+</div>

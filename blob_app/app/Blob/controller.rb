@@ -1,4 +1,5 @@
 require 'rho'
+require 'rho/rhoapplication'
 require 'rho/rhocontroller'
 require 'helpers/application_helper'
 require 'rho/rhoerror'
@@ -41,6 +42,8 @@ class BlobController < Rho::RhoController
   end
   
   def sync
+    Blob.set_notification("/app/Blob/sync_notify", "")
+    
     SyncEngine::dosync
     redirect :action => :index
   end
@@ -53,7 +56,7 @@ class BlobController < Rho::RhoController
         SyncEngine::login("admin", "password", url_for(:action => :login_callback) )
         render :action => :authenticating
       rescue RhoError => e
-        puts e.message
+        WebView.navigate(url_for(:action => :server_error, :query => {:msg => e.message}))
       end
     end
   end
@@ -84,7 +87,7 @@ class BlobController < Rho::RhoController
     errCode = @params['error_code'].to_i
     if errCode == 0
     	# run sync if we were successful
-      Blob.set_notification("/app/Blob/sync_notify", "doesnotmatter")
+      Blob.set_notification("/app/Blob/sync_notify", "")
       WebView.navigate(url_for(:action => :downloading_data))
       SyncEngine::dosync
     else
@@ -105,7 +108,7 @@ class BlobController < Rho::RhoController
   end
   
   def server_error
-    @msg = @params['msg']
+    @msg = Rho::RhoSupport::unescape_form(@params['msg']) rescue nil    
   end
   
 end
