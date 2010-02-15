@@ -1,25 +1,52 @@
 class Blob < SourceAdapter
-	def query(conditions=nil,limit=nil,offset=nil)
-		@result={}
-
-    new_item = {
-    	'image_uri' => "http://github.com/images/modules/header/logov3.png", 
-    	'attrib_type' => 'blob.url'
-  	}
-    @result["123456789"] = new_item
-    
+  PATH = File.join(RAILS_ROOT,'public','images')
+  BASEURL = 'http://localhost:3000'
+  
+  def initialize(source,credential)
+    super(source,credential)
+  end
+ 
+  def login
+  end
+ 
+  def query
+    @result={}
+    Dir.entries(PATH).each do |entry|
+      new_item = {'image_uri' => BASEURL+'/images/'+entry, 'attrib_type' => 'blob.url'}
+      unless entry == '..' || entry == '.' || entry == '.keep'
+        p "Found: #{entry}"
+        @result[entry.hash.to_s] = new_item
+      end
+    end
     @result
-
-#		ov=ObjectValue.new
-#		o.source_id=@source.id
-#    o.object="123456"
-#    o.attrib="url"
-#    o.user_id = @source.current_user.id
-#		ov.blob="http://github.com/images/modules/header/logov3.png"
-	end
-	
-	def create(name_value_list)
-	  # just for debugging right now
-	  logger.debug  name_value_list.inspect.to_s
-	end
+  end
+ 
+  def sync
+    super
+  end
+ 
+  def create(name_value_list,blob=nil)
+    if blob
+      obj = ObjectValue.find(:first, :conditions => "object = '#{blob.instance.object}' AND value = '#{name_value_list[0]["value"]}'")
+      path = blob.path.gsub(/\/\//,"\/#{obj.id}\/")
+      name = name_value_list[0]["value"]
+      `cp #{path} #{File.join(PATH,name)}`
+    end
+  end
+ 
+  def update(name_value_list)
+  end
+ 
+  def delete(name_value_list)
+    Dir.entries(PATH).each do |entry|
+      obj_id = name_value_list[0]['value']
+      if entry.hash.to_s == obj_id
+        p "Removing: #{entry}"
+        `rm #{File.join(PATH,entry)}`
+      end
+    end
+  end
+ 
+  def logoff
+  end
 end
